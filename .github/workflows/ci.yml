@@ -1,0 +1,21 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Type tests live in *.test-d.ts and are checked here, not by the runner: if the
+      # SDK's literal inference ever breaks, the BUILD fails rather than the types
+      # quietly going slack.
+      - run: npm run typecheck
+      # No API key in CI by design. Jev is waitlist-gated, and tests that need the
+      # network are tests that get disabled.
+      - run: npm test
+      - run: npx tsx src/eval/cli.ts decisions/ticket-triage --simulate=calibrated

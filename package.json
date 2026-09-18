@@ -1,0 +1,27 @@
+{
+  "name": "jevsysuno",
+  "version": "0.1.0",
+  "description": "Reference integration for TypeSafe AI's Jev System One model: typed decisions, code-owned thresholds, and a calibration eval harness.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./eval": "./src/eval/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "eval": "tsx src/eval/cli.ts"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

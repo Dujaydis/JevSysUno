@@ -1,0 +1,43 @@
+// Labeled tickets for the ticket-triage decision. `expected` is ground truth for the
+// PRIMARY question (category). Tags matter: aggregate accuracy over clear cases only
+// tells you nothing -- the adversarial rows use surface words that point the wrong way.
+{"id": "c00", "state": {"subject": "Charged twice this month", "body": "I see two charges of $49 on my card for August. I only have one account."}, "expected": "billing", "tag": "clear"}
+{"id": "c01", "state": {"subject": "Refund for annual plan", "body": "I want a refund for the annual plan I bought yesterday by mistake."}, "expected": "billing", "tag": "clear"}
+{"id": "c02", "state": {"subject": "Invoice missing VAT", "body": "Our finance team needs the VAT number on invoice 8841."}, "expected": "billing", "tag": "clear"}
+{"id": "c03", "state": {"subject": "Card declined", "body": "My payment method keeps getting declined but the card works elsewhere."}, "expected": "billing", "tag": "clear"}
+{"id": "c04", "state": {"subject": "Upgrade pricing", "body": "How much would it cost to move from the team plan to business?"}, "expected": "billing", "tag": "clear"}
+{"id": "c05", "state": {"subject": "App crashes on launch", "body": "Since the update this morning the desktop app crashes immediately on launch."}, "expected": "technical", "tag": "clear"}
+{"id": "c06", "state": {"subject": "500 errors on export", "body": "Every CSV export returns a 500 error. Started about an hour ago."}, "expected": "technical", "tag": "clear"}
+{"id": "c07", "state": {"subject": "Dashboard very slow", "body": "The dashboard takes 40+ seconds to load since yesterday."}, "expected": "technical", "tag": "clear"}
+{"id": "c08", "state": {"subject": "Webhooks not firing", "body": "Our webhook endpoint stopped receiving events at 09:00 UTC."}, "expected": "technical", "tag": "clear"}
+{"id": "c09", "state": {"subject": "Search returns nothing", "body": "Search has returned zero results for every query since the weekend."}, "expected": "technical", "tag": "clear"}
+{"id": "c10", "state": {"subject": "Cannot log in", "body": "I can't log in and the password reset email never arrives."}, "expected": "account", "tag": "clear"}
+{"id": "c11", "state": {"subject": "Locked out after 2FA reset", "body": "I reset my phone and now 2FA is locking me out entirely."}, "expected": "account", "tag": "clear"}
+{"id": "c12", "state": {"subject": "Add a teammate", "body": "How do I give my colleague access to our workspace?"}, "expected": "account", "tag": "clear"}
+{"id": "c13", "state": {"subject": "Remove old admin", "body": "Please remove the admin access for a teammate who left."}, "expected": "account", "tag": "clear"}
+{"id": "c14", "state": {"subject": "SSO not working", "body": "Our Okta SSO login loops back to the sign-in page."}, "expected": "account", "tag": "clear"}
+{"id": "c15", "state": {"subject": "Feature request: dark mode", "body": "Would love a dark mode in the mobile app."}, "expected": "other", "tag": "clear"}
+{"id": "c16", "state": {"subject": "Just saying thanks", "body": "Your support team was great last week. No issue, just thanks!"}, "expected": "other", "tag": "clear"}
+{"id": "c17", "state": {"subject": "Do you have an API?", "body": "Wondering whether you offer a public API for reporting."}, "expected": "other", "tag": "clear"}
+{"id": "c18", "state": {"subject": "Conference sponsorship", "body": "We'd like to talk about sponsoring your user conference."}, "expected": "other", "tag": "clear"}
+{"id": "c19", "state": {"subject": "Where are you based?", "body": "Curious which country your company operates from."}, "expected": "other", "tag": "clear"}
+{"id": "a00", "state": {"subject": "Invoice won't load", "body": "My invoice page won't load in the dashboard, spinner forever."}, "expected": "technical", "tag": "ambiguous"}
+{"id": "a01", "state": {"subject": "Charged after cancelling", "body": "I cancelled last month but was charged again. Also the cancel button errored."}, "expected": "billing", "tag": "ambiguous"}
+{"id": "a02", "state": {"subject": "Can't access billing page", "body": "I get a permission error when I open the billing settings."}, "expected": "account", "tag": "ambiguous"}
+{"id": "a03", "state": {"subject": "Payment page broken", "body": "The checkout page throws an error when I enter my card."}, "expected": "technical", "tag": "ambiguous"}
+{"id": "a04", "state": {"subject": "Seats and cost", "body": "We added three people and I'm not sure what we'll be charged."}, "expected": "billing", "tag": "ambiguous"}
+{"id": "a05", "state": {"subject": "Team member can't see reports", "body": "A teammate has a seat but reports show as empty for them."}, "expected": "account", "tag": "ambiguous"}
+{"id": "a06", "state": {"subject": "Export missing rows", "body": "Exports are missing rows for one workspace but not others."}, "expected": "technical", "tag": "ambiguous"}
+{"id": "a07", "state": {"subject": "Discount not applied", "body": "The annual discount didn't apply and I'm not sure if it's a bug."}, "expected": "billing", "tag": "ambiguous"}
+{"id": "a08", "state": {"subject": "Something changed", "body": "Everything looks different since the upgrade and I can't find settings."}, "expected": "other", "tag": "ambiguous"}
+{"id": "a09", "state": {"subject": "Slow and expensive", "body": "It's gotten slow and we're paying a lot. Is that expected at our size?"}, "expected": "other", "tag": "ambiguous"}
+{"id": "x00", "state": {"subject": "URGENT: refund", "body": "Nothing is wrong, I just want to know your refund policy for the future."}, "expected": "billing", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x01", "state": {"subject": "Error in my invoice", "body": "The invoice has the wrong company name on it."}, "expected": "billing", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x02", "state": {"subject": "Crash course", "body": "Do you offer a crash course or training for new admins?"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x03", "state": {"subject": "Bug me about renewal", "body": "Please remind me before renewal so I'm not surprised by the charge."}, "expected": "billing", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x04", "state": {"subject": "Account of the outage", "body": "Can you send an account of what happened during last week's outage?"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x05", "state": {"subject": "Password protected export", "body": "Can exports be password protected? Not broken, just asking."}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x06", "state": {"subject": "Charged up", "body": "The team is charged up about the new release, great work!"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x07", "state": {"subject": "Technically speaking", "body": "Technically speaking, is our data encrypted at rest?"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x08", "state": {"subject": "Login page design", "body": "The login page design is lovely. Who did it?"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
+{"id": "x09", "state": {"subject": "Broken promise", "body": "Sales promised a feature that doesn't exist. Who do I talk to?"}, "expected": "other", "tag": "adversarial", "note": "surface words suggest the wrong category"}
