@@ -8,7 +8,6 @@
   --rule:#CDD4DA; --rule-soft:#DFE4E8;
   --signal:#2F5DA8; --signal-soft:#DCE5F4;
   --good:#1F7A5C; --good-soft:#D7EBE2; --warn:#A8701A; --warn-soft:#F4E6CE; --crit:#A8352C; --crit-soft:#F4DCD9;
-  --shadow:0 1px 2px rgba(20,26,32,.06), 0 6px 20px -12px rgba(20,26,32,.22);
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Source Serif 4",Georgia,"Times New Roman",serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -18,14 +17,12 @@
   --rule:#293139; --rule-soft:#1E252C;
   --signal:#7CA6EC; --signal-soft:#1B2739;
   --good:#46AE83; --good-soft:#15271F; --warn:#D3A251; --warn-soft:#2A2114; --crit:#DC7267; --crit-soft:#2C1917;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.7);
 }}
 :root[data-theme="dark"]{
   --ground:#0F1317; --panel:#161B21; --ink:#E4E9ED; --ink-soft:#94A0AB; --ink-faint:#6B7681;
   --rule:#293139; --rule-soft:#1E252C;
   --signal:#7CA6EC; --signal-soft:#1B2739;
   --good:#46AE83; --good-soft:#15271F; --warn:#D3A251; --warn-soft:#2A2114; --crit:#DC7267; --crit-soft:#2C1917;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
@@ -80,7 +77,6 @@ section:last-of-type{border-bottom:0}
 .pb-f{height:100%;background:var(--signal);border-radius:3px;transition:width .45s cubic-bezier(.4,0,.2,1)}
 .pb-v{font-family:var(--mono);font-size:12px;color:var(--ink-soft);text-align:right;font-variant-numeric:tabular-nums}
 .pb.win .pb-l,.pb.win .pb-v{color:var(--ink);font-weight:600}
-.pb.win .pb-f{background:var(--signal)}
 .pb:not(.win) .pb-f{background:var(--ink-faint);opacity:.5}
 
 /* tabs */
@@ -161,7 +157,7 @@ li{margin-block:6px}
   <div class="facts">
     <div class="fact">Announced <b>15 Sep 2026</b></div>
     <div class="fact">Age at research: <b>3 days</b></div>
-    <div class="fact">Output tokens <b>free</b></div>
+    <div class="fact">Output tokens <b>currently</b> free</div>
     <div class="fact">Weights <b>closed</b></div>
   </div>
   <p class="lede" style="font-size:15px;margin-top:22px">Use the <b>Simple / Medium / Detailed</b> switch above to change how deep every section on this page goes.</p>
@@ -471,6 +467,22 @@ li{margin-block:6px}
            '<div class="pb-v">'+val.toFixed(2)+'</div></div>';
   }
   function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  /* One chip row. Binds the container once and delegates, so redrawing the row does not
+     re-attach a listener per button. `onpick` is replaced each render so the newest
+     closure wins without rebinding. */
+  function chips(id, labels, active, onPick){
+    var el = document.getElementById(id);
+    el.innerHTML = labels.map(function(label,i){
+      return '<button type="button" class="chip" data-i="'+i+'" aria-pressed="'+(i===active)+'">'+esc(label)+'</button>';
+    }).join("");
+    el.onpick = onPick;
+    if(el.dataset.bound) return;
+    el.dataset.bound = "1";
+    el.addEventListener("click", function(e){
+      var b = e.target.closest(".chip");
+      if(b) el.onpick(+b.getAttribute("data-i"));
+    });
+  }
   function hl(json){
     return esc(json)
       .replace(/"([^"]+)":/g, '"<span class="k">$1</span>":')
@@ -549,18 +561,13 @@ li{margin-block:6px}
     var P = PRIM[curPrim], s = P.samples[curSample];
     document.getElementById("p-desc").textContent = P.desc;
     document.getElementById("p-qlabel").textContent = P.qlabel;
-    document.getElementById("p-chips").innerHTML = P.samples.map(function(x,i){
-      return '<button type="button" class="chip" data-i="'+i+'" aria-pressed="'+(i===curSample)+'">'+esc(x.name)+'</button>';
-    }).join("");
+    chips("p-chips", P.samples.map(function(x){ return x.name; }), curSample, function(i){ curSample = i; drawPrim(); });
     var out = P.render(s);
     document.getElementById("p-bars").innerHTML = out.bars;
     document.getElementById("p-readout").textContent = out.read;
     document.getElementById("p-req").innerHTML = hl(P.req(s));
     document.getElementById("p-res").innerHTML = hl(P.res(s));
     Object.keys(tabs).forEach(function(k){ tabs[k].setAttribute("aria-selected", k===curPrim ? "true":"false"); });
-    Array.prototype.forEach.call(document.querySelectorAll("#p-chips .chip"), function(c){
-      c.addEventListener("click", function(){ curSample = +c.getAttribute("data-i"); drawPrim(); });
-    });
   }
   Object.keys(tabs).forEach(function(k){ tabs[k].addEventListener("click", function(){ curPrim=k; curSample=0; drawPrim(); }); });
   drawPrim();
@@ -575,18 +582,13 @@ li{margin-block:6px}
   function drawTrap(){
     var t = TRAP[curTrap], ev=0;
     t.d.forEach(function(p,i){ ev += p*i; });
-    document.getElementById("s-chips").innerHTML = TRAP.map(function(x,i){
-      return '<button type="button" class="chip" data-i="'+i+'" aria-pressed="'+(i===curTrap)+'">'+esc(x.name)+'</button>';
-    }).join("");
+    chips("s-chips", TRAP.map(function(x){ return x.name; }), curTrap, function(i){ curTrap = i; drawTrap(); });
     document.getElementById("s-bars").innerHTML = t.d.map(function(p,i){
       return bar(i+" · "+trapLevels[i], p, p===Math.max.apply(null,t.d));
     }).join("");
     document.getElementById("s-score").textContent = ev.toFixed(2);
     document.getElementById("s-conf").textContent = Math.max.apply(null,t.d).toFixed(2);
     document.getElementById("s-verdict").textContent = t.verdict;
-    Array.prototype.forEach.call(document.querySelectorAll("#s-chips .chip"), function(c){
-      c.addEventListener("click", function(){ curTrap = +c.getAttribute("data-i"); drawTrap(); });
-    });
   }
   drawTrap();
 
@@ -603,17 +605,25 @@ li{margin-block:6px}
     bad:  {name:"overconfident · phishing", f:function(c){ return Math.min(0.99, Math.max(0.25, c - 0.26)); }}
   };
   var curReg = "good";
+  var REG_KEYS = Object.keys(REG);
   var lo = document.getElementById("c-lo"), hi = document.getElementById("c-hi");
+
+  /* Separate from drawBands: the regime only changes on a click, while drawBands runs on
+     every slider input. Rebuilding the chip row 60 times a second to redraw two buttons
+     that did not change is the kind of work worth not doing. */
+  function drawRegimeChips(){
+    chips("c-chips", REG_KEYS.map(function(k){ return REG[k].name; }), REG_KEYS.indexOf(curReg), function(i){
+      curReg = REG_KEYS[i];
+      drawRegimeChips();
+      drawBands();
+    });
+  }
 
   function drawBands(){
     var L = +lo.value, H = +hi.value;
     if(L > H){ L = H; lo.value = String(H); }
     document.getElementById("c-lo-v").textContent = L.toFixed(2);
     document.getElementById("c-hi-v").textContent = H.toFixed(2);
-    document.getElementById("c-chips").innerHTML = Object.keys(REG).map(function(k){
-      return '<button type="button" class="chip" data-k="'+k+'" aria-pressed="'+(k===curReg)+'">'+esc(REG[k].name)+'</button>';
-    }).join("");
-
     var nAuto=0, nRev=0, nEsc=0, wrongAuto=0, caught=0;
     POP.forEach(function(p){
       var correct = p.r < REG[curReg].f(p.c);
@@ -632,13 +642,10 @@ li{margin-block:6px}
     document.getElementById("c-wrong").textContent = wrongAuto;
     document.getElementById("c-human").textContent = nRev + nEsc;
     document.getElementById("c-caught").textContent = caught;
-
-    Array.prototype.forEach.call(document.querySelectorAll("#c-chips .chip"), function(c){
-      c.addEventListener("click", function(){ curReg = c.getAttribute("data-k"); drawBands(); });
-    });
   }
   lo.addEventListener("input", drawBands);
   hi.addEventListener("input", drawBands);
+  drawRegimeChips();
   drawBands();
 })();
 </script>
