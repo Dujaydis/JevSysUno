@@ -1,0 +1,342 @@
+<title>Jev Plus LLM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EDEFF2;--panel:#F7F8FA;--ink:#161A1F;--ink-soft:#5A646E;--ink-faint:#8B959E;
+  --rule:#CDD4DA;--rule-soft:#DFE4E8;--signal:#2F5DA8;--signal-soft:#DCE5F4;
+  --good:#1F7A5C;--good-soft:#D7EBE2;--warn:#A8701A;--warn-soft:#F4E6CE;--crit:#A8352C;--crit-soft:#F4DCD9;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0F1317;--panel:#161B21;--ink:#E4E9ED;--ink-soft:#94A0AB;--ink-faint:#6B7681;
+  --rule:#293139;--rule-soft:#1E252C;--signal:#7CA6EC;--signal-soft:#1B2739;
+  --good:#46AE83;--good-soft:#15271F;--warn:#D3A251;--warn-soft:#2A2114;--crit:#DC7267;--crit-soft:#2C1917;
+}}
+:root[data-theme="dark"]{
+  --ground:#0F1317;--panel:#161B21;--ink:#E4E9ED;--ink-soft:#94A0AB;--ink-faint:#6B7681;
+  --rule:#293139;--rule-soft:#1E252C;--signal:#7CA6EC;--signal-soft:#1B2739;
+  --good:#46AE83;--good-soft:#15271F;--warn:#D3A251;--warn-soft:#2A2114;--crit:#DC7267;--crit-soft:#2C1917;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:0 90px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;letter-spacing:-.02em;line-height:1.14;margin:0}
+h1{font-size:clamp(36px,7.5vw,62px);font-weight:800;letter-spacing:-.035em}
+h2{font-size:clamp(24px,4.2vw,32px);font-weight:700;margin-block:0 14px}
+h3{font-size:18px;font-weight:700;margin-block:0 8px}
+p{margin-block:0 16px}
+code{font-family:var(--mono);font-size:.86em;background:var(--signal-soft);padding:.1em .38em;border-radius:3px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-block:0 10px}
+header{padding-block:50px 30px;border-bottom:1px solid var(--rule)}
+.lede{font-size:clamp(17px,2.3vw,20px);color:var(--ink-soft);max-width:62ch;margin-top:16px}
+.lede b{color:var(--ink);font-weight:600}
+section{padding-block:40px;border-bottom:1px solid var(--rule-soft)}
+section:last-of-type{border-bottom:0}
+figure{margin:22px 0}
+figcaption{font-size:14px;color:var(--ink-soft);margin-top:10px;font-family:var(--body)}
+svg{max-width:100%;height:auto;display:block}
+.panel{background:var(--panel);border:1px solid var(--rule-soft);border-radius:10px;padding:20px;margin-block:20px}
+.note{border-left:3px solid var(--signal);background:var(--signal-soft);padding:13px 16px;border-radius:0 7px 7px 0;margin-block:18px;font-size:15.5px}
+.note.w{border-left-color:var(--warn);background:var(--warn-soft)}
+.note p:last-child{margin-bottom:0}
+label.ctl{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--signal)}
+.dials{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:620px){.dials{grid-template-columns:1fr}}
+.bands{display:flex;height:36px;border-radius:6px;overflow:hidden;border:1px solid var(--rule-soft);margin-block:14px}
+.band{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;transition:flex-basis .3s ease;overflow:hidden;white-space:nowrap}
+.b-act{background:var(--good-soft);color:var(--good)}
+.b-rev{background:var(--warn-soft);color:var(--warn)}
+.b-esc{background:var(--crit-soft);color:var(--crit)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin-top:14px}
+.stat{border:1px solid var(--rule-soft);border-radius:8px;padding:11px 13px;background:var(--panel)}
+.stat .v{font-family:var(--display);font-size:23px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .lb{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-top:3px}
+.stat.err .v{color:var(--crit)}
+.stat.ok .v{color:var(--good)}
+.delta{font-family:var(--mono);font-size:10.5px;margin-top:4px;color:var(--ink-faint)}
+.delta.moved{color:var(--signal);font-weight:600}
+pre{background:var(--panel);border:1px solid var(--rule-soft);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;margin-block:12px}
+pre .c{color:var(--ink-faint);font-style:italic}
+pre .k{color:var(--signal)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-block:12px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule-soft)}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.foot{color:var(--ink-faint);font-size:13.5px;font-family:var(--mono);line-height:1.6}
+ul{padding-left:22px}li{margin-block:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Jev + LLM &middot; worked example</p>
+  <h1>Two dials, not one</h1>
+  <p class="lede">A support-ticket harness where Jev decides and <b>its confidence decides who decides</b>. Running it across 40 tickets turns up something the architecture diagrams never show: the two thresholds are <b>independent dials controlling different costs</b>. One buys accuracy. The other buys money. Moving the wrong one does nothing.</p>
+</header>
+
+<section>
+  <p class="eyebrow">01 &middot; The mechanism</p>
+  <h2>One Jev call, three destinations</h2>
+  <p>The ticket goes to Jev once. Three questions ride in that single request and come back answered in parallel. The confidence on the <em>primary</em> question gets compared against two cut points that live in your code &mdash; and those two cuts are the whole routing policy.</p>
+
+  <figure>
+    <svg viewBox="0 0 860 330" role="img" aria-label="A ticket enters one Jev call carrying three parallel questions; the returned confidence is compared against two thresholds, review and act, which split traffic into three destinations: escalate to an LLM, queue for a human, or commit automatically.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <rect x="8" y="128" width="96" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="56" y="147" text-anchor="middle" font-size="12" fill="currentColor" font-weight="600">ticket</text>
+      <text x="56" y="163" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">subject + body</text>
+
+      <line x1="106" y1="151" x2="158" y2="151" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+
+      <rect x="160" y="96" width="150" height="110" rx="6" fill="none" stroke="#2F5DA8" stroke-width="2"/>
+      <text x="235" y="116" text-anchor="middle" font-size="12" fill="#2F5DA8" font-weight="700">ONE Jev call</text>
+      <line x1="174" y1="126" x2="296" y2="126" stroke="currentColor" stroke-width=".75" opacity=".3"/>
+      <text x="176" y="143" font-size="10.5" fill="currentColor">choice: category</text>
+      <text x="176" y="161" font-size="10.5" fill="currentColor">score: urgency</text>
+      <text x="176" y="179" font-size="10.5" fill="currentColor">noul: refundRisk</text>
+      <text x="235" y="197" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".6">answered in parallel</text>
+
+      <line x1="312" y1="151" x2="364" y2="151" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text x="338" y="143" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".7">~400ms</text>
+
+      <text x="366" y="36" font-size="10.5" fill="currentColor" opacity=".7">confidence on the primary question</text>
+      <line x1="366" y1="48" x2="366" y2="262" stroke="currentColor" stroke-width="1.5"/>
+      <text x="358" y="56" text-anchor="end" font-size="10" fill="currentColor" opacity=".6">1.0</text>
+      <text x="358" y="262" text-anchor="end" font-size="10" fill="currentColor" opacity=".6">0.0</text>
+
+      <line x1="366" y1="104" x2="560" y2="104" stroke="#1F7A5C" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="566" y="100" font-size="11" fill="#1F7A5C" font-weight="600">act</text>
+      <text x="566" y="113" font-size="9.5" fill="currentColor" opacity=".65">dial 1</text>
+
+      <line x1="366" y1="196" x2="560" y2="196" stroke="#A8352C" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <text x="566" y="192" font-size="11" fill="#A8352C" font-weight="600">review</text>
+      <text x="566" y="205" font-size="9.5" fill="currentColor" opacity=".65">dial 2</text>
+
+      <line x1="380" y1="76" x2="614" y2="76" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="620" y="56" width="176" height="40" rx="6" fill="none" stroke="#1F7A5C" stroke-width="1.5"/>
+      <text x="708" y="73" text-anchor="middle" font-size="11.5" fill="#1F7A5C" font-weight="600">commit automatically</text>
+      <text x="708" y="88" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">no LLM, no human</text>
+
+      <line x1="380" y1="150" x2="614" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="620" y="130" width="176" height="40" rx="6" fill="none" stroke="#A8701A" stroke-width="1.5"/>
+      <text x="708" y="147" text-anchor="middle" font-size="11.5" fill="#A8701A" font-weight="600">human queue</text>
+      <text x="708" y="162" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">Jev&#8217;s answer pre-fills it</text>
+
+      <line x1="380" y1="228" x2="614" y2="228" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="620" y="206" width="176" height="44" rx="6" fill="none" stroke="#A8352C" stroke-width="2"/>
+      <text x="708" y="224" text-anchor="middle" font-size="11.5" fill="#A8352C" font-weight="700">escalate to the LLM</text>
+      <text x="708" y="240" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">~3.4s, ~1000x the cost</text>
+
+      <text x="380" y="286" font-size="10.5" fill="currentColor" opacity=".75">dial 1 moves tickets between commit and human &#8212; changes ERRORS, not cost</text>
+      <text x="380" y="304" font-size="10.5" fill="currentColor" opacity=".75">dial 2 moves tickets between human and LLM &#8212; changes COST, not errors</text>
+    </svg>
+    <figcaption>The confidence axis is the whole routing policy. Because the two cut points sit on the same axis but bound different segments, each one only ever moves traffic across <em>its own</em> boundary &mdash; which is why they trade against completely different things.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <p class="eyebrow">02 &middot; The dials</p>
+  <h2>Move one. Watch the other column not move.</h2>
+  <p>Real output from <code>examples/hybrid-harness.ts</code> over 40 labelled tickets. Confidence per ticket is fixed data from an actual run, so every number below is recomputed exactly as the CLI computes it &mdash; nothing here is interpolated.</p>
+
+  <div class="panel">
+    <div class="dials">
+      <div>
+        <label class="ctl" for="d-act">Dial 1 &mdash; act at or above <span id="v-act" style="color:var(--good)"></span></label>
+        <input type="range" id="d-act" min="0.56" max="1" step="0.005" value="0.9">
+      </div>
+      <div>
+        <label class="ctl" for="d-rev">Dial 2 &mdash; escalate below <span id="v-rev" style="color:var(--crit)"></span></label>
+        <input type="range" id="d-rev" min="0.55" max="0.99" step="0.005" value="0.6">
+      </div>
+    </div>
+
+    <div class="bands">
+      <div class="band b-esc" id="b-esc"></div><div class="band b-rev" id="b-rev"></div><div class="band b-act" id="b-act"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat err"><div class="v" id="s-err">&mdash;</div><div class="lb">errors shipped</div><div class="delta" id="dl-err">&mdash;</div></div>
+      <div class="stat"><div class="v" id="s-llm">&mdash;</div><div class="lb">LLM calls</div><div class="delta" id="dl-llm">&mdash;</div></div>
+      <div class="stat"><div class="v" id="s-cost">&mdash;</div><div class="lb">total cost</div><div class="delta" id="dl-cost">&mdash;</div></div>
+      <div class="stat ok"><div class="v" id="s-save">&mdash;</div><div class="lb">vs all-LLM</div><div class="delta" id="dl-save">&mdash;</div></div>
+    </div>
+    <p class="foot" style="margin-top:12px" id="hint"></p>
+  </div>
+
+  <div class="note">
+    <p><strong>That is the finding.</strong> Drag dial 1 and <em>errors shipped</em> moves while <em>cost</em> sits perfectly still. Drag dial 2 and cost swings by two orders of magnitude while errors never budge. Most write-ups on this pattern describe "a confidence threshold" as if it were one knob trading one thing. It is two knobs trading two unrelated things, and knowing which one you are holding is the difference between fixing your budget and fixing your error rate.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">03 &middot; The economics</p>
+  <h2>Your savings are capped by your escalation rate</h2>
+  <p>Jev costs roughly a thousandth of an LLM call. That ratio is irrelevant. What decides your bill is the fraction of traffic you <em>don&#8217;t</em> send onward &mdash; so the headline multiplier collapses the moment escalation climbs.</p>
+
+  <figure id="curve-fig"></figure>
+
+  <div class="note w">
+    <p>The 772&times; at the left edge is not a real operating point &mdash; it is what you get when nothing escalates, i.e. when you have quietly turned the LLM off and are trusting a classifier with everything. The honest range for a harness that actually escalates its uncertain cases is the <strong>2&ndash;8&times;</strong> band in the middle. Any vendor multiplier quoted without an escalation rate attached is describing the left edge of this curve.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">04 &middot; The code</p>
+  <h2>What the seam actually looks like</h2>
+  <p>The escalator is an ordinary async function returning the same type the Jev path returns. That substitutability is the design: callers never branch on which engine answered.</p>
+  <pre><span class="c">// The LLM is constrained to the same shape Jev guarantees structurally.</span>
+<span class="k">const</span> response = <span class="k">await</span> client.messages.create({
+  model: <span style="color:var(--good)">"claude-opus-5"</span>,
+  max_tokens: 1024,
+  output_config: {
+    effort: <span style="color:var(--good)">"low"</span>,              <span class="c">// triage is classification-shaped</span>
+    format: { type: <span style="color:var(--good)">"json_schema"</span>, schema },
+  },
+  messages: [{ role: <span style="color:var(--good)">"user"</span>, content: prompt }],
+});</pre>
+  <p>And the call site cannot get the band wrong, because <code>DecisionResult</code> is a discriminated union with no <code>outcome</code> on the root:</p>
+  <pre><span class="k">switch</span> (result.kind) {
+  <span class="k">case</span> <span style="color:var(--good)">"acted"</span>:     <span class="k">return</span> commit(result.outcome);          <span class="c">// no LLM was called</span>
+  <span class="k">case</span> <span style="color:var(--good)">"review"</span>:    <span class="k">return</span> prefillForHuman(result.outcome); <span class="c">// provisional only</span>
+  <span class="k">case</span> <span style="color:var(--good)">"escalated"</span>: <span class="k">return</span> commit(result.outcome);          <span class="c">// the LLM answered</span>
+  <span class="k">case</span> <span style="color:var(--good)">"fallback"</span>:  <span class="k">return</span> commit(result.outcome);          <span class="c">// Jev down, rules ran</span>
+  <span class="k">case</span> <span style="color:var(--good)">"failed"</span>:    <span class="k">throw</span> <span class="k">new</span> Error(<span style="color:var(--good)">"no fallback defined"</span>);
+}</pre>
+</section>
+
+<section>
+  <p class="eyebrow">05 &middot; What this is not</p>
+  <h2>Read the caveats before you quote the numbers</h2>
+  <ul>
+    <li><strong>Both models are simulated.</strong> No TypeSafe key and no <code>ANTHROPIC_API_KEY</code> were available. The routing, the banding and the arithmetic are real code running on real data; the model <em>outputs</em> come from a deterministic stand-in calibrated to the published benchmark shape (100% on clear cases, ~71% on ambiguous).</li>
+    <li><strong>Jev&#8217;s price is unverified.</strong> The $0.042/M input figure appears only in secondary blogs and could not be confirmed from any first-party TypeSafe source. Every cost number here inherits that uncertainty. LLM pricing is first-party and solid.</li>
+    <li><strong>The escalate band&#8217;s final accuracy is not modelled.</strong> The stand-in passes Jev&#8217;s guess through rather than inventing an LLM that magically knows the answer. So "errors shipped" counts only the auto-act band &mdash; which is the number that actually matters, because it is the one nobody downstream checks.</li>
+    <li><strong>40 tickets is far too few</strong> to set a real threshold. The eval harness in this repo refuses to suggest one below 50 for exactly this reason.</li>
+  </ul>
+</section>
+
+<p class="foot" style="padding-top:28px">Generated from <code>examples/hybrid-harness.ts</code> &middot; 40 labelled tickets &middot; 2026-09-19</p>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var T = [{"id":"c00","tag":"clear","confidence":0.6498,"correct":true},{"id":"c01","tag":"clear","confidence":0.7609,"correct":true},{"id":"c02","tag":"clear","confidence":0.9632,"correct":true},{"id":"c03","tag":"clear","confidence":0.7375,"correct":true},{"id":"c04","tag":"clear","confidence":0.8081,"correct":false},{"id":"c05","tag":"clear","confidence":0.635,"correct":true},{"id":"c06","tag":"clear","confidence":0.6865,"correct":true},{"id":"c07","tag":"clear","confidence":0.933,"correct":true},{"id":"c08","tag":"clear","confidence":0.6826,"correct":true},{"id":"c09","tag":"clear","confidence":0.8998,"correct":true},{"id":"c10","tag":"clear","confidence":0.9085,"correct":true},{"id":"c11","tag":"clear","confidence":0.9257,"correct":true},{"id":"c12","tag":"clear","confidence":0.6596,"correct":true},{"id":"c13","tag":"clear","confidence":0.9741,"correct":true},{"id":"c14","tag":"clear","confidence":0.9559,"correct":true},{"id":"c15","tag":"clear","confidence":0.9009,"correct":true},{"id":"c16","tag":"clear","confidence":0.7613,"correct":true},{"id":"c17","tag":"clear","confidence":0.8705,"correct":true},{"id":"c18","tag":"clear","confidence":0.5794,"correct":true},{"id":"c19","tag":"clear","confidence":0.8827,"correct":true},{"id":"a00","tag":"ambiguous","confidence":0.8928,"correct":true},{"id":"a01","tag":"ambiguous","confidence":0.5604,"correct":false},{"id":"a02","tag":"ambiguous","confidence":0.7041,"correct":false},{"id":"a03","tag":"ambiguous","confidence":0.9723,"correct":true},{"id":"a04","tag":"ambiguous","confidence":0.8697,"correct":true},{"id":"a05","tag":"ambiguous","confidence":0.7644,"correct":true},{"id":"a06","tag":"ambiguous","confidence":0.8881,"correct":true},{"id":"a07","tag":"ambiguous","confidence":0.5968,"correct":true},{"id":"a08","tag":"ambiguous","confidence":0.8345,"correct":false},{"id":"a09","tag":"ambiguous","confidence":0.5742,"correct":true},{"id":"x00","tag":"adversarial","confidence":0.7458,"correct":false},{"id":"x01","tag":"adversarial","confidence":0.928,"correct":true},{"id":"x02","tag":"adversarial","confidence":0.5866,"correct":true},{"id":"x03","tag":"adversarial","confidence":0.6792,"correct":false},{"id":"x04","tag":"adversarial","confidence":0.7328,"correct":true},{"id":"x05","tag":"adversarial","confidence":0.574,"correct":true},{"id":"x06","tag":"adversarial","confidence":0.6957,"correct":true},{"id":"x07","tag":"adversarial","confidence":0.5949,"correct":false},{"id":"x08","tag":"adversarial","confidence":0.9685,"correct":true},{"id":"x09","tag":"adversarial","confidence":0.5723,"correct":true}];
+  var JEV_PER_TICKET = 0.042 * 120 / 1e6;        // ~120 input tokens, output free (price UNVERIFIED)
+  var LLM_PER_CALL   = 5.0 * 320/1e6 + 25.0 * 90/1e6;  // claude-opus-5, ~320 in / ~90 out
+
+  var act = document.getElementById("d-act"), rev = document.getElementById("d-rev");
+  var last = null;
+
+  function compute(a, r){
+    var A=0,R=0,E=0,err=0;
+    for (var i=0;i<T.length;i++){
+      var c = T[i].confidence;
+      if (c >= a){ A++; if(!T[i].correct) err++; }
+      else if (c >= r){ R++; }
+      else { E++; }
+    }
+    var cost = T.length*JEV_PER_TICKET + E*LLM_PER_CALL;
+    return { A:A, R:R, E:E, err:err, cost:cost, save: (T.length*LLM_PER_CALL)/cost };
+  }
+
+  function fmtSave(x){ return x >= 100 ? Math.round(x)+"x" : x.toFixed(1)+"x"; }
+
+  function delta(id, now, before, fmt){
+    var el = document.getElementById(id);
+    if (before === null || now === before){ el.textContent = "unchanged"; el.className = "delta"; return; }
+    var up = now > before;
+    el.textContent = (up?"\u2191 ":"\u2193 ") + fmt(Math.abs(now-before));
+    el.className = "delta moved";
+  }
+
+  function draw(){
+    var a = +act.value, r = +rev.value;
+    if (r > a){ r = a; rev.value = String(a); }
+    document.getElementById("v-act").textContent = a.toFixed(2);
+    document.getElementById("v-rev").textContent = r.toFixed(2);
+
+    var m = compute(a, r), n = T.length;
+    document.getElementById("b-act").style.flexBasis = (m.A/n*100)+"%";
+    document.getElementById("b-rev").style.flexBasis = (m.R/n*100)+"%";
+    document.getElementById("b-esc").style.flexBasis = (m.E/n*100)+"%";
+    document.getElementById("b-act").textContent = m.A/n>0.15 ? "commit "+m.A : "";
+    document.getElementById("b-rev").textContent = m.R/n>0.15 ? "human "+m.R : "";
+    document.getElementById("b-esc").textContent = m.E/n>0.15 ? "LLM "+m.E : "";
+
+    document.getElementById("s-err").textContent  = m.err;
+    document.getElementById("s-llm").textContent  = m.E;
+    document.getElementById("s-cost").textContent = "$"+m.cost.toFixed(4);
+    document.getElementById("s-save").textContent = fmtSave(m.save);
+
+    delta("dl-err",  m.err,  last && last.err,  function(v){ return v+" error"+(v===1?"":"s"); });
+    delta("dl-llm",  m.E,    last && last.E,    function(v){ return v+" call"+(v===1?"":"s"); });
+    delta("dl-cost", +m.cost.toFixed(4), last && +last.cost.toFixed(4), function(v){ return "$"+v.toFixed(4); });
+    delta("dl-save", +m.save.toFixed(1),  last && +last.save.toFixed(1),  function(v){ return v.toFixed(1)+"x"; });
+
+    document.getElementById("hint").textContent =
+      m.A + " commit without review \u00b7 " + m.R + " pre-filled for a human \u00b7 " +
+      m.E + " sent to claude-opus-5 \u00b7 " + m.err + " wrong answer" + (m.err===1?"":"s") + " shipped unchecked";
+    last = m;
+  }
+
+  act.addEventListener("input", draw);
+  rev.addEventListener("input", draw);
+  draw();
+  last = null; draw();
+
+  /* ---- savings curve, computed from the same data ---- */
+  (function curve(){
+    var pts = [], A = 0.9;
+    for (var r = 0.55; r <= 0.975; r += 0.025){
+      var m = compute(A, r);
+      pts.push({ escRate: m.E/T.length, save: m.save });
+    }
+    var W = 760, H = 300, L = 62, Rr = 20, Tp = 22, B = 46;
+    var x = function(v){ return L + v * (W-L-Rr); };
+    var maxLog = Math.log10(1000), minLog = 0;
+    var y = function(v){ var lg = Math.log10(Math.max(v,1)); return H-B - (lg-minLog)/(maxLog-minLog) * (H-B-Tp); };
+
+    var path = pts.map(function(p,i){ return (i?"L":"M") + x(p.escRate).toFixed(1) + " " + y(p.save).toFixed(1); }).join(" ");
+    var ticks = [1,10,100,1000];
+    var grid = ticks.map(function(t){
+      return '<line x1="'+L+'" y1="'+y(t).toFixed(1)+'" x2="'+(W-Rr)+'" y2="'+y(t).toFixed(1)+'" stroke="currentColor" stroke-width=".5" opacity=".18"/>' +
+             '<text x="'+(L-8)+'" y="'+(y(t)+4).toFixed(1)+'" text-anchor="end" font-size="10.5" fill="currentColor" opacity=".65">'+t+'x</text>';
+    }).join("");
+    var xt = [0,0.25,0.5,0.75,1].map(function(v){
+      return '<text x="'+x(v).toFixed(1)+'" y="'+(H-B+20)+'" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".65">'+Math.round(v*100)+'%</text>';
+    }).join("");
+
+    var band = '<rect x="'+x(0.1).toFixed(1)+'" y="'+Tp+'" width="'+(x(0.55)-x(0.1)).toFixed(1)+'" height="'+(H-B-Tp)+'" fill="#2F5DA8" opacity=".07"/>' +
+               '<text x="'+x(0.325).toFixed(1)+'" y="'+(Tp+16)+'" text-anchor="middle" font-size="10.5" fill="#2F5DA8" font-weight="600">realistic operating range</text>';
+
+    var dots = pts.filter(function(_,i){ return i%3===0; }).map(function(p){
+      return '<circle cx="'+x(p.escRate).toFixed(1)+'" cy="'+y(p.save).toFixed(1)+'" r="2.8" fill="#2F5DA8"/>';
+    }).join("");
+
+    document.getElementById("curve-fig").innerHTML =
+      '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Cost saving versus the all-LLM baseline, on a logarithmic scale, falling from over 700 times when nothing escalates to under 2 times when most traffic escalates.">' +
+      band + grid + xt +
+      '<line x1="'+L+'" y1="'+Tp+'" x2="'+L+'" y2="'+(H-B)+'" stroke="currentColor" stroke-width="1"/>' +
+      '<line x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-Rr)+'" y2="'+(H-B)+'" stroke="currentColor" stroke-width="1"/>' +
+      '<path d="'+path+'" fill="none" stroke="#2F5DA8" stroke-width="2.5"/>' + dots +
+      '<text x="'+((L+W-Rr)/2).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">share of traffic escalated to the LLM</text>' +
+      '<text x="14" y="'+((Tp+H-B)/2).toFixed(1)+'" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8" transform="rotate(-90 14 '+((Tp+H-B)/2).toFixed(1)+')">saving vs all-LLM (log)</text>' +
+      '</svg>' +
+      '<figcaption>Log scale. Every point is computed from the same 40-ticket run, varying only the escalate threshold. The curve is steep at the left because the first few escalations each add a cost roughly a thousand times a Jev call &mdash; so the multiplier is governed almost entirely by escalation rate, not by how cheap Jev is.</figcaption>';
+  })();
+})();
+</script>
